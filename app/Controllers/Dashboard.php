@@ -95,15 +95,18 @@ class Dashboard extends BaseController
 
         $apiUrl = 'http://apps.sinjaikab.go.id/api/pegawai/data_pegawai/?nip=' . (int)$nip;
         try {
-            $opts = [
-                "http" => [
-                    "method"  => "GET",
-                    "header"  => "Accept: application/json\r\n",
-                    "timeout" => 3
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $apiUrl,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 3,
+                CURLOPT_HTTPHEADER => [
+                    'Accept: application/json'
                 ]
-            ];
-            $context = stream_context_create($opts);
-            $response = @file_get_contents($apiUrl, false, $context);
+            ]);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
             if ($response !== false) {
                 $data = json_decode($response);
                 if (isset($data->nama) && !empty($data->nama)) {

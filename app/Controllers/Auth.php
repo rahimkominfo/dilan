@@ -51,18 +51,22 @@ class Auth extends BaseController
         $apiUrl = 'http://apps.sinjaikab.go.id/api/pegawai/data_pegawai/?nip=' . (int)$nip;
         
         try {
-            $opts = [
-                "http" => [
-                    "method"  => "GET",
-                    "header"  => "Accept: application/json\r\n",
-                    "timeout" => 5
-                ]
-            ];
-            $context = stream_context_create($opts);
-            $response = @file_get_contents($apiUrl, false, $context);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $apiUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $response = curl_exec($ch);
+            
             if ($response !== false) {
                 $data_pegawai = json_decode($response);
+            } else {
+                $error = curl_error($ch);
+                log_message('error', 'API data_pegawai curl error: ' . $error);
             }
+            curl_close($ch);
         } catch (\Exception $e) {
             log_message('error', 'API data_pegawai error: ' . $e->getMessage());
         }
@@ -70,14 +74,16 @@ class Auth extends BaseController
         // Fetch User Auth API call
         $userAuthUrl = PEGAWAI_API . 'user_auth/?username=' . urlencode($nip) . '&password=' . urlencode($password);
         try {
-            $opts = [
-                "http" => [
-                    "method"  => "GET",
-                    "timeout" => 5
-                ]
-            ];
-            $context = stream_context_create($opts);
-            @file_get_contents($userAuthUrl, false, $context);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $userAuthUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $response = curl_exec($ch);
+            if ($response === false) {
+                $error = curl_error($ch);
+                log_message('error', 'API user_auth curl error: ' . $error);
+            }
+            curl_close($ch);
         } catch (\Exception $e) {
             log_message('error', 'API user_auth error: ' . $e->getMessage());
         }

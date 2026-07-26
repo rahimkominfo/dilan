@@ -294,22 +294,32 @@ class Admin extends BaseController
     public function user_info()
     {
         $kategori_id = session()->get('kategori_id'); // From login session
-        $informasi = [];
         $kategoriName = 'Semua Kategori';
+        $keyword = trim($this->request->getVar('keyword') ?? '');
+
+        $infoQuery = $this->infoModel;
 
         if ($kategori_id) {
-            $informasi = $this->infoModel->where('kategori_id', $kategori_id)->findAll();
+            $infoQuery = $infoQuery->where('kategori_id', $kategori_id);
             $kat = $this->kategoriModel->find($kategori_id);
             if ($kat) {
                 $kategoriName = $kat['nama_kategori'];
             }
-        } else {
-            $informasi = $this->infoModel->findAll();
+        }
+
+        if ($keyword !== '') {
+            $infoQuery = $infoQuery->groupStart()
+                ->like('judul', $keyword)
+                ->orLike('isi', $keyword)
+                ->orLike('kata_kunci', $keyword)
+                ->groupEnd();
         }
 
         $data = [
             'title'         => 'Dashboard User OPD - Dilan',
-            'informasi'     => $informasi,
+            'informasi'     => $infoQuery->paginate(10, 'user_info'),
+            'pager'         => $this->infoModel->pager,
+            'keyword'       => $keyword,
             'kategori_name' => $kategoriName
         ];
         return view('admin/user_info', $data);

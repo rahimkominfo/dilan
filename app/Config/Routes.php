@@ -56,3 +56,9 @@ $routes->group('admin', function($routes) {
     $routes->post('user_opd/update/(:num)', 'Admin::user_opd_update/$1');
     $routes->post('user_opd/delete/(:num)', 'Admin::user_opd_delete/$1');
 });
+
+// Load API Routes
+if (file_exists(ROOTPATH . 'routes/api.php')) {
+    require ROOTPATH . 'routes/api.php';
+}
+

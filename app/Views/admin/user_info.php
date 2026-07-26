@@ -21,14 +21,25 @@
         <main class="flex-grow overflow-y-auto p-6 bg-slate-50/50 custom-scrollbar">
             <!-- Table Card -->
             <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h2 class="text-lg font-bold text-slate-900">Artikel <?= esc($kategori_name ?? 'Layanan') ?></h2>
                         <p class="text-xs text-slate-400 mt-1">Daftar artikel dan panduan penulisan oleh <?= esc($kategori_name ?? 'OPD') ?>.</p>
                     </div>
-                    <a href="<?= base_url('admin/form_info_user') ?>" title="Tambah Informasi" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md transition-all flex items-center justify-center shrink-0">
-                        <i class="fas fa-plus text-sm"></i>
-                    </a>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full sm:w-auto">
+                        <!-- Search Form -->
+                        <form action="<?= base_url('admin/user_info') ?>" method="GET" class="relative max-w-xs w-full sm:w-64">
+                            <input type="text" name="keyword" value="<?= esc($keyword ?? '') ?>" placeholder="Cari informasi..." class="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium text-slate-900">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-xs">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </form>
+
+                        <a href="<?= base_url('admin/form_info_user') ?>" title="Tambah Informasi" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md transition-all flex items-center justify-center shrink-0">
+                            <i class="fas fa-plus text-sm"></i>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -46,7 +57,13 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <?php $no = 1; foreach($informasi as $info): ?>
+                            <?php 
+                            if (!empty($informasi)):
+                                $currentPage = $pager->getCurrentPage('user_info');
+                                $perPage = $pager->getPerPage('user_info');
+                                $no = 1 + ($currentPage - 1) * $perPage;
+                                foreach($informasi as $info): 
+                            ?>
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="py-4 px-6"><?= $no++ ?>.</td>
                                 <td class="py-4 px-6 font-semibold text-slate-900"><?= esc($info['judul']) ?></td>
@@ -64,9 +81,29 @@
                                     </div>
                                 </td>
                             </tr>
-                            <?php endforeach; ?>
+                            <?php 
+                                endforeach;
+                            else:
+                            ?>
+                            <tr>
+                                <td colspan="8" class="py-8 px-6 text-center text-slate-400 italic">Belum ada informasi yang tersedia.</td>
+                            </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
+                </div>
+
+                <?php
+                $total = $pager->getTotal('user_info');
+                $currentPage = $pager->getCurrentPage('user_info');
+                $perPage = $pager->getPerPage('user_info');
+                $start = $total > 0 ? 1 + ($currentPage - 1) * $perPage : 0;
+                $end = min($currentPage * $perPage, $total);
+                ?>
+                <!-- Footer Pagination -->
+                <div class="p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-500">
+                    <span>Menampilkan <?= $start ?>-<?= $end ?> dari <?= $total ?> data</span>
+                    <?= $pager->links('user_info', 'tailwind') ?>
                 </div>
             </div>
         </main>

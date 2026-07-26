@@ -57,8 +57,15 @@ $routes->group('admin', function($routes) {
     $routes->post('user_opd/delete/(:num)', 'Admin::user_opd_delete/$1');
 });
 
+// Route Embed FAQ untuk Aplikasi Pihak Ketiga
+$routes->group('embed', function ($routes) {
+    $routes->get('faq/(:num)', 'EmbedController::faq/$1');
+    $routes->get('faq', 'EmbedController::faq');
+});
+
 // Load API Routes
 if (file_exists(ROOTPATH . 'routes/api.php')) {
     require ROOTPATH . 'routes/api.php';
 }
+
 

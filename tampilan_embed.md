@@ -323,3 +323,53 @@ class EmbedController extends Controller
 ```
 
 ---
+
+## 7. 💻 Panduan Integrasi Bagi Aplikasi Pihak Ketiga
+
+Aplikasi lain dapat memasang widget FAQ ini dengan memilih salah satu cara berikut:
+
+### Opsi A: Iframe Sederhana (Tinggi Statis)
+```html
+<!-- Gantilah angka 5 dengan ID Kategori FAQ Anda -->
+<iframe 
+    src="https://dilan.domain/embed/faq/5" 
+    width="100%" 
+    height="600px" 
+    style="border:none; overflow:hidden;"
+    title="FAQ DILAN AR">
+</iframe>
+```
+
+### Opsi B: Iframe Responsif Auto-Height (Rekomendasi ⭐)
+Agar iframe secara otomatis menyesuaikan tingginya tanpa ada scrollbar ganda:
+
+```html
+<!-- Iframe Element -->
+<iframe 
+    id="dilan-faq-frame" 
+    src="https://dilan.domain/embed/faq/5" 
+    width="100%" 
+    height="400px" 
+    style="border:none; transition: height 0.2s ease;"
+    title="FAQ DILAN AR">
+</iframe>
+
+<!-- Script Resizer Parent Window -->
+<script>
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'dilan_faq_resize') {
+            document.getElementById('dilan-faq-frame').style.height = event.data.height + 'px';
+        }
+    });
+</script>
+```
+
+---
+
+## 8. 📋 Checklist Rencana Pelaksanaan
+
+- [ ] Membaca dan menyetujui rancangan di file `tampilan_embed.md`.
+- [ ] Membuat file Controller `app/Controllers/EmbedController.php`.
+- [ ] Membuat file View `app/Views/embed/faq.php`.
+- [ ] Menambahkan rute pada `app/Config/Routes.php`.
+- [ ] Uji coba tampilan pada browser dan simulasi `<iframe>`.

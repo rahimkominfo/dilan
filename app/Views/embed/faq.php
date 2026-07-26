@@ -1,167 +1,3 @@
-# Rancangan Tampilan Embed FAQ (Iframe Widget)
-
-Dokumen ini berisi spesifikasi teknis, arsitektur, dan racangan antarmuka (UI/UX) untuk fitur **Halaman Embed FAQ DILAN AR**. Halaman ini dirancang khusus agar dapat dipasang (*embedded*) pada aplikasi pihak ketiga (seperti Portal OPD, Aplikasi PKM, Website Instansi, dll.) menggunakan `<iframe>` secara mulus dan responsif.
-
----
-
-## 1. 🎯 Latar Belakang & Tujuan
-
-### Masalah Integrasi API Saat Ini
-1. **CORS / Domain Policy**: Aplikasi pihak ketiga membutuhkan penanganan *Cross-Origin Resource Sharing* ketika memanggil REST API `FaqApiController`.
-2. **Kompleksitas Frontend Pihak Ketiga**: Pihak ketiga harus membuat sendiri tampilan UI (search input, accordion, responsive layout, dsb) dan menangani *parsing* JSON dari API.
-3. **Konsistensi UI/UX**: Tampilan FAQ di berbagai aplikasi menjadi berbeda-beda dan membutuhkan penyesuaian CSS berulang.
-
-### Solusi: Halaman Dedicated Embed (`/embed/faq/{category_id}`)
-Menyediakan halaman khusus di server **DILAN AR** yang ringan, *clean*, tanpa *header/footer* navigasi utama website, dan dapat disematkan langsung via `<iframe>`. Halaman ini sudah menyatu dengan fitur **Pencarian Real-Time** dan **Accordion FAQ**.
-
----
-
-## 2. 🏗️ Arsitektur & Alur Kerja Embed
-
-```
-+-----------------------------------------------------------------------+
-|                       APLIKASI PIHAK KETIGA                           |
-|                                                                       |
-|  [ Elemen Aplikasi Pihak Ketiga ]                                     |
-|  +-----------------------------------------------------------------+  |
-|  | <iframe src="https://dilan.domain/embed/faq/5">                  |  |
-|  |  +-----------------------------------------------------------+  |  |
-|  |  |  🔍 [ Cari pertanyaan... ]                               |  |  |
-|  |  |                                                           |  |  |
-|  |  |  ▼ Bagaimana cara mendaftar akun?                         |  |  |
-|  |  |    Jawaban lengkap dari DILAN AR...                        |  |  |
-|  |  |  ▼ Berapa lama proses verifikasi?                         |  |  |
-|  |  +-----------------------------------------------------------+  |  |
-|  +-----------------------------------------------------------------+  |
-+-----------------------------------------------------------------------+
-```
-
----
-
-## 3. 🛠️ Spesifikasi Endpoint & Route
-
-### A. Routing CodeIgniter 4 (`app/Config/Routes.php`)
-```php
-// Route Embed FAQ untuk Aplikasi Pihak Ketiga
-$routes->group('embed', function ($routes) {
-    $routes->get('faq/(:num)', 'EmbedController::faq/$1');
-    $routes->get('faq', 'EmbedController::faq');
-});
-```
-
-### B. Parameter URL (Query Strings)
-| Parameter | Tipe | Contoh | Deskripsi |
-| :--- | :--- | :--- | :--- |
-| `category_id` | Path / Num | `/embed/faq/3` | ID Kategori FAQ yang ditampilkan. |
-| `search` | Query | `?search=layanan` | Kata kunci pencarian awal (opsional). |
-| `theme` | Query | `?theme=light` | Skema warna (`light` atau `clean`). |
-| `primary_color` | Query | `?primary_color=1d4ed8` | Custom warna aksen (hex tanpa `#`). |
-
----
-
-## 4. 🔒 Konfigurasi Keamanan Header (CORS & CSP)
-
-Agar `<iframe>` dapat dimuat oleh domain pihak ketiga tanpa terblokir oleh kebijakan browser (*X-Frame-Options*), Controller Embed akan mengatur header HTTP khusus:
-
-```php
-// Menghapus X-Frame-Options SAMEORIGIN untuk halaman embed
-$this->response->removeHeader('X-Frame-Options');
-
-// Mengizinkan iframe dipasang di domain manapun (atau domain terdaftar)
-$this->response->setHeader('Content-Security-Policy', "frame-ancestors *");
-```
-
----
-
-## 5. 🎨 Rancangan UI/UX Halaman Embed
-
-### Komponen Utama Tampilan:
-1. **Search Bar Sticky / Floating**:
-   - Live Search (pencarian langsung tanpa reload halaman).
-   - Tombol reset/clear search.
-2. **Kategori Badge / Header Minimalis**:
-   - Menampilkan nama kategori FAQ yang sedang aktif.
-3. **FAQ Accordion Items**:
-   - Pertanyaan (Title Bar) dengan icon toggle expandable.
-   - Jawaban (Expandable Content) dengan format text/HTML rapi.
-4. **Empty State**:
-   - Tampilan jika data FAQ kosong atau hasil pencarian tidak ditemukan.
-5. **Auto-Resize Height Script (`postMessage`)**:
-   - Mengirim tinggi konten ke window induk agar iframe menyesuaikan tinggi secara otomatis tanpa scrollbar ganda (*double scrollbar*).
-
----
-
-## 6. 📝 Draft Kode Implementasi
-
-### A. Controller: `app/Controllers/EmbedController.php`
-
-```php
-<?php
-
-namespace App\Controllers;
-
-use App\Models\InfoModel;
-use App\Models\KategoriModel;
-use CodeIgniter\Controller;
-
-class EmbedController extends Controller
-{
-    protected $infoModel;
-    protected $kategoriModel;
-
-    public function __construct()
-    {
-        $this->infoModel     = new InfoModel();
-        $this->kategoriModel = new KategoriModel();
-    }
-
-    public function faq($categoryId = null)
-    {
-        // 1. Set Security Headers agar bisa di-embed di Iframe Pihak Ketiga
-        response()->removeHeader('X-Frame-Options');
-        response()->setHeader('Content-Security-Policy', "frame-ancestors *");
-
-        // 2. Ambil parameter pencarian awal jika ada
-        $search = $this->request->getGet('search') ?? $this->request->getGet('keyword');
-
-        $category = null;
-        $articles = [];
-
-        if (!empty($categoryId) && is_numeric($categoryId)) {
-            $category = $this->kategoriModel->find($categoryId);
-            
-            if ($category) {
-                $builder = $this->infoModel->where('kategori_id', $categoryId);
-                
-                if (!empty($search)) {
-                    $search = trim($search);
-                    $builder->groupStart()
-                        ->like('judul', $search)
-                        ->orLike('isi', $search)
-                    ->groupEnd();
-                }
-                
-                $articles = $builder->findAll();
-            }
-        }
-
-        $data = [
-            'category' => $category,
-            'articles' => $articles,
-            'search'   => $search,
-            'categoryId' => $categoryId
-        ];
-
-        return view('embed/faq', $data);
-    }
-}
-```
-
----
-
-### B. View: `app/Views/embed/faq.php`
-
-```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -207,7 +43,7 @@ class EmbedController extends Controller
                     placeholder="Ketik kata kunci pencarian FAQ..." 
                     class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                 >
-                <button id="clear-search" onclick="clearSearch()" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <button id="clear-search" onclick="clearSearch()" class="<?= empty($search) ? 'hidden' : '' ?> absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     <i class="fas fa-times-circle"></i>
                 </button>
             </div>
@@ -307,11 +143,14 @@ class EmbedController extends Controller
         // Auto Resize Height Iframe ke Host Window
         function sendHeightToParent() {
             setTimeout(() => {
-                const height = document.getElementById('embed-container').offsetHeight + 40;
-                window.parent.postMessage({
-                    type: 'dilan_faq_resize',
-                    height: height
-                }, '*');
+                const container = document.getElementById('embed-container');
+                if (container) {
+                    const height = container.offsetHeight + 40;
+                    window.parent.postMessage({
+                        type: 'dilan_faq_resize',
+                        height: height
+                    }, '*');
+                }
             }, 50);
         }
 
@@ -320,6 +159,3 @@ class EmbedController extends Controller
     </script>
 </body>
 </html>
-```
-
----

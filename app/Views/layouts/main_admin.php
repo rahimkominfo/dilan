@@ -65,11 +65,28 @@
         <?= $this->include('layouts/admin/navbar') ?>
 
         <!-- Main Content -->
-        <main class="flex-grow overflow-y-auto p-6 bg-slate-50/50 custom-scrollbar">
+        <main class="flex-grow overflow-y-auto p-4 sm:p-6 bg-slate-50/50 custom-scrollbar">
             <?= $this->renderSection('content') ?>
         </main>
     </div>
 
     <?= $this->renderSection('modals') ?>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
+

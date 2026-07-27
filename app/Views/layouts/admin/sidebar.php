@@ -1,7 +1,16 @@
-<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 shadow-xl hidden md:flex">
-    <div class="h-16 flex items-center px-6 border-b border-slate-800 space-x-3">
-        <img src="<?= base_url('assets/img/logo.png') ?>" alt="Logo Dilan" class="w-8 h-8 object-contain">
-        <span class="text-lg font-bold text-white tracking-wide">Panel Dilan</span>
+<!-- Mobile Backdrop Overlay -->
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+
+<!-- Sidebar -->
+<aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800 shadow-xl -translate-x-full md:translate-x-0 md:static md:flex transition-transform duration-300 ease-in-out">
+    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+            <img src="<?= base_url('assets/img/logo.png') ?>" alt="Logo Dilan" class="w-8 h-8 object-contain">
+            <span class="text-lg font-bold text-white tracking-wide">Panel Dilan</span>
+        </div>
+        <button onclick="toggleSidebar()" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden focus:outline-none" aria-label="Close Sidebar Menu">
+            <i class="fas fa-times text-lg"></i>
+        </button>
     </div>
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
         <a href="<?= base_url('/') ?>" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition-all text-slate-400">
@@ -35,3 +44,4 @@
         <a href="<?= base_url('auth/logout') ?>" class="text-slate-400 hover:text-red-400" title="Logout"><i class="fas fa-power-off"></i></a>
     </div>
 </aside>
+

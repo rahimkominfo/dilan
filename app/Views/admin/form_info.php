@@ -113,6 +113,14 @@
             })
             .then(editor => {
                 console.log('CKEditor 5 initialized successfully.');
+                const form = document.querySelector('form');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        const rawData = editor.getData();
+                        const encodedData = btoa(encodeURIComponent(rawData));
+                        document.querySelector('#isi_panduan').value = encodedData;
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error during CKEditor 5 initialization:', error);

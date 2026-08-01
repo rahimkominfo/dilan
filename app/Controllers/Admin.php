@@ -57,7 +57,7 @@ class Admin extends BaseController
         $data = [
             'judul' => $this->request->getPost('judul'),
             'kategori_id' => $this->request->getPost('kategori_id'),
-            'isi' => $this->request->getPost('isi'),
+            'isi' => $this->decodeIsi($this->request->getPost('isi')),
             'kata_kunci' => $this->request->getPost('kata_kunci'),
             'tgl_buat' => date('Y-m-d H:i:s'),
             'dibuat_oleh' => session()->get('nip') ?? 'Admin',
@@ -73,7 +73,7 @@ class Admin extends BaseController
         $data = [
             'judul' => $this->request->getPost('judul'),
             'kategori_id' => $this->request->getPost('kategori_id'),
-            'isi' => $this->request->getPost('isi'),
+            'isi' => $this->decodeIsi($this->request->getPost('isi')),
             'kata_kunci' => $this->request->getPost('kata_kunci'),
             'tgl_update' => date('Y-m-d H:i:s'),
             'diperbarui_oleh' => session()->get('nip') ?? 'Admin'
@@ -345,7 +345,7 @@ class Admin extends BaseController
         $data = [
             'judul' => $this->request->getPost('judul'),
             'kategori_id' => session()->get('kategori_id'),
-            'isi' => $this->request->getPost('isi'),
+            'isi' => $this->decodeIsi($this->request->getPost('isi')),
             'kata_kunci' => $this->request->getPost('kata_kunci'),
             'tgl_buat' => date('Y-m-d H:i:s'),
             'dibuat_oleh' => session()->get('nip') ?? 'User OPD',
@@ -360,7 +360,7 @@ class Admin extends BaseController
     {
         $data = [
             'judul' => $this->request->getPost('judul'),
-            'isi' => $this->request->getPost('isi'),
+            'isi' => $this->decodeIsi($this->request->getPost('isi')),
             'kata_kunci' => $this->request->getPost('kata_kunci'),
             'tgl_update' => date('Y-m-d H:i:s'),
             'diperbarui_oleh' => session()->get('nip') ?? 'User OPD'
@@ -452,5 +452,19 @@ class Admin extends BaseController
         return $this->response->setJSON([
             'error' => ['message' => 'Gagal mengunggah gambar ke server.']
         ]);
+    }
+
+    private function decodeIsi($isiInput)
+    {
+        if (empty($isiInput)) {
+            return '';
+        }
+
+        $decoded = base64_decode($isiInput, true);
+        if ($decoded !== false && base64_encode($decoded) === $isiInput) {
+            return urldecode($decoded);
+        }
+
+        return $isiInput;
     }
 }

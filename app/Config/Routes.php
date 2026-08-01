@@ -44,10 +44,11 @@ $routes->group('admin', function($routes) {
     $routes->post('kategori/update/(:num)', 'Admin::kategori_update/$1');
     $routes->post('kategori/delete/(:num)', 'Admin::kategori_delete/$1');
 
-    // Media CRUD
+    // Media & Image Upload CRUD
     $routes->get('media', 'Admin::media');
     $routes->post('media/upload', 'Admin::media_upload');
     $routes->post('media/delete/(:num)', 'Admin::media_delete/$1');
+    $routes->post('upload_image', 'Admin::upload_image');
 
     // Operator & User OPD Account
     $routes->get('operator', 'Admin::operator');

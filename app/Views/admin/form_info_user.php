@@ -66,7 +66,7 @@
                 ImageCaption,
                 ImageStyle,
                 ImageUpload,
-                Base64UploadAdapter,
+                SimpleUploadAdapter,
                 Alignment
             } = CKEDITOR;
 
@@ -89,7 +89,7 @@
                         ImageCaption,
                         ImageStyle,
                         ImageUpload,
-                        Base64UploadAdapter,
+                        SimpleUploadAdapter,
                         Alignment
                     ],
                     toolbar: [
@@ -98,7 +98,10 @@
                         'bold', 'italic', 'underline', 'alignment', '|',
                         'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
                         'insertImage'
-                    ]
+                    ],
+                    simpleUpload: {
+                        uploadUrl: '<?= base_url('admin/upload_image') ?>'
+                    }
                 })
                 .then(editor => {
                     console.log('CKEditor 5 initialized successfully.');

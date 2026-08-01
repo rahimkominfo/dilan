@@ -415,4 +415,42 @@ class Admin extends BaseController
         $nameCache[$nip] = $nip;
         return $nip;
     }
+
+    public function upload_image()
+    {
+        $file = $this->request->getFile('upload');
+
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+            if (!in_array($file->getMimeType(), $allowedMimes)) {
+                return $this->response->setJSON([
+                    'error' => ['message' => 'Format file tidak didukung. Harap unggah file gambar (JPG, PNG, WEBP, GIF).']
+                ]);
+            }
+
+            // Max 5MB
+            if ($file->getSize() > 5 * 1024 * 1024) {
+                return $this->response->setJSON([
+                    'error' => ['message' => 'Ukuran file terlalu besar. Maksimal 5MB.']
+                ]);
+            }
+
+            $newName = $file->getRandomName();
+            $targetDir = FCPATH . 'uploads/info';
+
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            $file->move($targetDir, $newName);
+
+            return $this->response->setJSON([
+                'url' => base_url('uploads/info/' . $newName)
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'error' => ['message' => 'Gagal mengunggah gambar ke server.']
+        ]);
+    }
 }

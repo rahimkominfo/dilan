@@ -46,11 +46,11 @@
 
                 <form action="<?= base_url('auth/login_process') ?>" method="post" class="space-y-5">
 
-                    <!-- NIP -->
+                    <!-- NIP / Username -->
                     <div>
 
                         <label class="block text-gray-700 font-semibold mb-2">
-                            NIP
+                            NIP/Username
                         </label>
 
                         <input
@@ -58,7 +58,7 @@
                             name="nip"
                             id="nip"
                             value="<?= set_value('nip') ?>"
-                            placeholder="Masukkan NIP"
+                            placeholder="Masukkan NIP / Username"
                             autofocus
                             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
                         

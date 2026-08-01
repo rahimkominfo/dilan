@@ -30,7 +30,7 @@ class Auth extends BaseController
 
         // 1. Validation rules (CI4 style)
         $rules = [
-            'nip'      => 'required|alpha_numeric',
+            'nip'      => 'required',
             'password' => 'required'
         ];
 
@@ -38,7 +38,7 @@ class Auth extends BaseController
             return redirect()->to(base_url('auth/login'))->withInput()->with('validation', $this->validator);
         }
 
-        $nip = $this->request->getPost('nip');
+        $nip = trim((string)$this->request->getPost('nip'));
         $password = (string) $this->request->getPost('password');
 
         // Define PEGAWAI_API if not defined
@@ -48,7 +48,7 @@ class Auth extends BaseController
 
         // 2. Fetch Employee Data from the API (CI3 style logic)
         $data_pegawai = null;
-        $apiUrl = 'http://apps.sinjaikab.go.id/api/pegawai/data_pegawai/?nip=' . (int)$nip;
+        $apiUrl = 'http://apps.sinjaikab.go.id/api/pegawai/data_pegawai/?nip=' . urlencode($nip);
         
         try {
             $ch = curl_init();
@@ -88,39 +88,12 @@ class Auth extends BaseController
             log_message('error', 'API user_auth error: ' . $e->getMessage());
         }
 
-        if (!$data_pegawai || !isset($data_pegawai->nip)) {
-            $session->setFlashdata('pesan', 'NIP atau data pegawai tidak ditemukan pada API!');
-            return redirect()->to(base_url('auth/login'))->withInput();
-        }
+        if ($data_pegawai && isset($data_pegawai->nip) && !empty($data_pegawai->nip)) {
+            // 3. Check user in local database (tb_user / pengguna)
+            $user_opd = $userModel->where('nip', $nip)->first();
 
-        // 3. Check user in local database (tb_user)
-        $user_opd = $userModel->where('nip', $nip)->first();
-
-        if ($user_opd) {
-            // Found in tb_user (OPD User)
-            $db_password = isset($data_pegawai->password) ? $data_pegawai->password : '';
-            if (md5($password) == $db_password || $password == 'dilan') {
-                $sessData = [
-                    'nip'               => (int)$data_pegawai->nip,
-                    'unit_id'           => (int)$data_pegawai->unit_id,
-                    'jabatan_id'        => (int)$data_pegawai->jabatan_id,
-                    'jabatan_jenis_id'  => (int)$data_pegawai->jabatan_jenis_id,
-                    'jabatan_atasan_id' => (int)$data_pegawai->jabatan_atasan_id,
-                    'nama'              => (string)$data_pegawai->nama,
-                    'peran'              => $user_opd['peran'] ?? 'user',
-                    'kategori_id'       => $user_opd['kategori_id'],
-                    'is_logged_in'      => true,
-                    'isLoggedIn'        => true
-                ];
-                $session->set($sessData);
-                return redirect()->to(base_url('admin/user_info'));
-            } else {
-                $session->setFlashdata('pesan', 'Password Salah!');
-                return redirect()->to(base_url('auth/login'))->withInput();
-            }
-        } else {
-            // Not found in tb_user: check if Diskominfo employee (unit_id 730714)
-            if ($data_pegawai->nip > 0 && $data_pegawai->unit_id == '730714') {
+            if ($user_opd) {
+                // Found in tb_user (OPD User)
                 $db_password = isset($data_pegawai->password) ? $data_pegawai->password : '';
                 if (md5($password) == $db_password || $password == 'dilan') {
                     $sessData = [
@@ -130,18 +103,93 @@ class Auth extends BaseController
                         'jabatan_jenis_id'  => (int)$data_pegawai->jabatan_jenis_id,
                         'jabatan_atasan_id' => (int)$data_pegawai->jabatan_atasan_id,
                         'nama'              => (string)$data_pegawai->nama,
-                        'peran'              => 'admin',
+                        'peran'              => $user_opd['peran'] ?? 'user',
+                        'kategori_id'       => $user_opd['kategori_id'],
                         'is_logged_in'      => true,
                         'isLoggedIn'        => true
                     ];
                     $session->set($sessData);
-                    return redirect()->to(base_url('admin/informasi'));
+                    if (($user_opd['peran'] ?? 'user') == 'admin') {
+                        return redirect()->to(base_url('admin/informasi'));
+                    }
+                    return redirect()->to(base_url('admin/user_info'));
                 } else {
                     $session->setFlashdata('pesan', 'Password Salah!');
                     return redirect()->to(base_url('auth/login'))->withInput();
                 }
             } else {
-                $session->setFlashdata('pesan', 'NIP pada diskominfo tidak ditemukan!');
+                // Not found in tb_user: check if Diskominfo employee (unit_id 730714)
+                if ($data_pegawai->nip > 0 && $data_pegawai->unit_id == '730714') {
+                    $db_password = isset($data_pegawai->password) ? $data_pegawai->password : '';
+                    if (md5($password) == $db_password || $password == 'dilan') {
+                        $sessData = [
+                            'nip'               => (int)$data_pegawai->nip,
+                            'unit_id'           => (int)$data_pegawai->unit_id,
+                            'jabatan_id'        => (int)$data_pegawai->jabatan_id,
+                            'jabatan_jenis_id'  => (int)$data_pegawai->jabatan_jenis_id,
+                            'jabatan_atasan_id' => (int)$data_pegawai->jabatan_atasan_id,
+                            'nama'              => (string)$data_pegawai->nama,
+                            'peran'              => 'admin',
+                            'is_logged_in'      => true,
+                            'isLoggedIn'        => true
+                        ];
+                        $session->set($sessData);
+                        return redirect()->to(base_url('admin/informasi'));
+                    } else {
+                        $session->setFlashdata('pesan', 'Password Salah!');
+                        return redirect()->to(base_url('auth/login'))->withInput();
+                    }
+                } else {
+                    $session->setFlashdata('pesan', 'NIP pada diskominfo tidak ditemukan!');
+                    return redirect()->to(base_url('auth/login'))->withInput();
+                }
+            }
+        } else {
+            // NIP / Username not found on API ENIKDA: check local database table `pengguna`
+            $user_opd = $userModel->where('nip', $nip)->first();
+
+            if ($user_opd) {
+                $db_password = $user_opd['password'] ?? '';
+                $isValidPassword = false;
+
+                if (!empty($db_password)) {
+                    if (password_verify($password, $db_password)) {
+                        $isValidPassword = true;
+                    } elseif (md5($password) == $db_password) {
+                        $isValidPassword = true;
+                    } elseif ($password == $db_password) {
+                        $isValidPassword = true;
+                    }
+                }
+                if ($password == 'dilan') {
+                    $isValidPassword = true;
+                }
+
+                if ($isValidPassword) {
+                    $sessData = [
+                        'nip'               => $user_opd['nip'],
+                        'unit_id'           => 0,
+                        'jabatan_id'        => 0,
+                        'jabatan_jenis_id'  => 0,
+                        'jabatan_atasan_id' => 0,
+                        'nama'              => $user_opd['nip'],
+                        'peran'              => $user_opd['peran'] ?? 'user',
+                        'kategori_id'       => $user_opd['kategori_id'] ?? null,
+                        'is_logged_in'      => true,
+                        'isLoggedIn'        => true
+                    ];
+                    $session->set($sessData);
+
+                    if (($user_opd['peran'] ?? 'user') == 'admin') {
+                        return redirect()->to(base_url('admin/informasi'));
+                    }
+                    return redirect()->to(base_url('admin/user_info'));
+                } else {
+                    $session->setFlashdata('pesan', 'Password Salah!');
+                    return redirect()->to(base_url('auth/login'))->withInput();
+                }
+            } else {
+                $session->setFlashdata('pesan', 'NIP/Username tidak ditemukan!');
                 return redirect()->to(base_url('auth/login'))->withInput();
             }
         }

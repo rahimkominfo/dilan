@@ -10,6 +10,35 @@
     <style>
         body { background-color: transparent; }
         .faq-answer p { margin-bottom: 0.5rem; }
+        /* Fix for Tailwind CSS Preflight reset on Rich Text Content (CKEditor Output) */
+        .ck-content ol, .prose ol, .faq-answer ol, article ol {
+            list-style-type: decimal !important;
+            padding-left: 2rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .ck-content ul, .prose ul, .faq-answer ul, article ul {
+            list-style-type: disc !important;
+            padding-left: 2rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .ck-content ol ol, .prose ol ol, .faq-answer ol ol, article ol ol {
+            list-style-type: lower-alpha !important;
+        }
+        .ck-content ul ul, .prose ul ul, .faq-answer ul ul, article ul ul {
+            list-style-type: circle !important;
+        }
+        .ck-content ol ol ol, .prose ol ol ol, .faq-answer ol ol ol, article ol ol ol {
+            list-style-type: lower-roman !important;
+        }
+        .ck-content ul ul ul, .prose ul ul ul, .faq-answer ul ul ul, article ul ul ul {
+            list-style-type: square !important;
+        }
+        .ck-content li, .prose li, .faq-answer li, article li {
+            display: list-item !important;
+            margin-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body class="font-sans text-slate-800 p-2 sm:p-4">

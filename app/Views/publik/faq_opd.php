@@ -39,7 +39,7 @@
                         <span class="faq-title text-sm"><?= esc($article['judul']) ?></span>
                         <i id="icon-faq-<?= $article['info_id'] ?>" class="fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
                     </button>
-                    <div id="content-faq-<?= $article['info_id'] ?>" class="hidden px-6 pb-5 border-t border-slate-100 pt-3 text-sm text-slate-600 leading-relaxed bg-slate-50/30">
+                    <div id="content-faq-<?= $article['info_id'] ?>" class="hidden px-6 pb-5 border-t border-slate-100 pt-3 text-sm text-slate-600 leading-relaxed bg-slate-50/30 prose ck-content">
                         <?= format_article_images($article['isi']) ?>
                         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                             <span><i class="fas fa-eye mr-1"></i><?= esc($article['jumlah_tayang']) ?> Dilihat</span>

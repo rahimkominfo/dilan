@@ -36,7 +36,7 @@
         </div>
 
         <!-- Content -->
-        <div class="prose max-w-none text-slate-600 space-y-4">
+        <div class="prose ck-content max-w-none text-slate-600 space-y-4">
             <?= format_article_images($article['isi']) ?>
         </div>
     </div>

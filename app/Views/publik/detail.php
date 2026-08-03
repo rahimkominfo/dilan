@@ -49,7 +49,7 @@
     </div>
 
     <!-- Article Body -->
-    <article class="prose max-w-none text-slate-600 leading-relaxed space-y-6">
+    <article class="prose ck-content max-w-none text-slate-600 leading-relaxed space-y-6">
         <?= format_article_images($article['isi']) ?>
     </article>
 

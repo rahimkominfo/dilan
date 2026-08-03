@@ -40,10 +40,55 @@
 
     <!-- CKEditor 5 Local Assets -->
     <link rel="stylesheet" href="<?= base_url('assets/ckeditor5/ckeditor5.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/ckeditor5/ckeditor5-content.css') ?>">
     <style>
         /* Styling to set height for CKEditor 5 */
         .ck-editor__editable_inline {
             min-height: 300px;
+        }
+
+        /* Fix List styles in CKEditor 5 caused by Tailwind CSS preflight reset */
+        .ck-content ol,
+        .ck-editor__editable ol,
+        .prose ol {
+            list-style-type: decimal !important;
+            padding-left: 2.5rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .ck-content ul,
+        .ck-editor__editable ul,
+        .prose ul {
+            list-style-type: disc !important;
+            padding-left: 2.5rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        .ck-content ol ol,
+        .ck-editor__editable ol ol,
+        .prose ol ol {
+            list-style-type: lower-alpha !important;
+        }
+        .ck-content ul ul,
+        .ck-editor__editable ul ul,
+        .prose ul ul {
+            list-style-type: circle !important;
+        }
+        .ck-content ol ol ol,
+        .ck-editor__editable ol ol ol,
+        .prose ol ol ol {
+            list-style-type: lower-roman !important;
+        }
+        .ck-content ul ul ul,
+        .ck-editor__editable ul ul ul,
+        .prose ul ul ul {
+            list-style-type: square !important;
+        }
+        .ck-content li,
+        .ck-editor__editable li,
+        .prose li {
+            display: list-item !important;
+            margin-bottom: 0.25rem;
         }
     </style>
     <script src="<?= base_url('assets/ckeditor5/ckeditor5.umd.js') ?>"></script>

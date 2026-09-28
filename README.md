@@ -1,69 +1,97 @@
-# CodeIgniter 4 Application Starter
+# 💡 DILAN - Digital Information & Knowledge Base System
 
-## What is CodeIgniter?
+**DILAN** adalah platform terintegrasi basis pengetahuan (*Knowledge Base*), pusat edukasi digital, dan Frequently Asked Questions (FAQ) Pemerintah Kabupaten Sinjai. Platform ini memfasilitasi integrasi satu pintu (*Single Source of Truth*) untuk informasi layanan publik dari seluruh OPD/Puskesmas/Unit Kerja ke aplikasi dan portal web daerah.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+---
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## 🚀 Fitur Utama
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+- 🏢 **Multi-Tenant & Multi-Category OPD Management**: Pengelolaan artikel dan informasi berbasis kategori OPD/Puskesmas dengan dukungan akun OPD yang dapat menangani multi-kategori (*Multi-Category Switcher*).
+- 🔌 **RESTful API Ingestion & Public Knowledge API**:
+  - Ingestion data FAQ otomatis dari aplikasi luar/eksternal OPD menggunakan autentikasi Header `X-API-KEY`.
+  - Endpoint publik untuk pencarian instan dan penyajian data knowledge base ke portal web.
+- 🖼️ **Widget Embed Responsif**: Modul iframe siap pasang pada website OPD atau aplikasi pihak ketiga tanpa perlu coding ulang antarmuka FAQ.
+- 🎨 **Modern & Clean UI/UX**: Antarmuka responsif berbasis Tailwind CSS dengan desain kartu modern, soft shadow, micro-interaction yang smooth, dan standar aksi tabel *icon-only*.
+- 🔑 **Otentikasi Terintegrasi (API Pegawai Sinjai)**: Terhubung langsung dengan Single Sign-On / API Pegawai BKPPD & Diskominfo Sinjai.
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+---
 
-## Installation & updates
+## 🛠️ Tech Stack & Lingkungan Server
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+| Komponen | Spesifikasi / Keterangan |
+| :--- | :--- |
+| **Framework** | CodeIgniter 4 (PHP 8.2+) |
+| **Database** | MariaDB 10.x / 12.x (`MySQLi` Driver) |
+| **Styling** | Tailwind CSS + FontAwesome 6 |
+| **Server Stack** | Apache 2.4 + mod_php (Termux / Linux Server) |
+| **Format Commit** | Standar Git: `YYMMDD - [Tipe]: Deskripsi` |
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+---
 
-## Setup
+## ⚙️ Panduan Instalasi & Konfigurasi
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+### 1. Clone Repositori
+```bash
+git clone git@github.com:rahimkominfo/dilan.git
+cd dilan
+```
 
-## Important Change with index.php
+### 2. Konfigurasi Environment (`.env`)
+Salin atau buat file `.env` di root project:
+```ini
+CI_ENVIRONMENT = development
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+# APP
+app.baseURL = 'http://cepad/dilan/'
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+# DATABASE
+database.default.hostname = 127.0.0.1
+database.default.database = dilan_db
+database.default.username = root
+database.default.password = 
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+```
 
-**Please** read the user guide for a better explanation of how CI4 works!
+### 3. Migrasi & Skema Database
+Impor file skema database ke MariaDB:
+```bash
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS dilan_db;"
+mariadb -u root dilan_db < schema.sql
+```
 
-## Repository Management
+---
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+## 🌐 Dokumentasi Endpoint API
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+Base URL API: `http://<domain_atau_ip>/dilan/api/`
 
-## Server Requirements
+### 1. Endpoint Publik (Read-Only)
+- `GET /api/faqs/category/{kode_kategori}` : Mengambil daftar FAQ per kategori/OPD.
+- `GET /api/faqs/category/{kode_kategori}/search?q={keyword}` : Pencarian artikel FAQ.
+- `GET /api/faqs/detail/{id_info}` : Mengambil detail 1 artikel FAQ lengkap.
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+### 2. Endpoint Pengiriman Data (Wajib Header `X-API-KEY`)
+- `POST /api/faqs` : Pengiriman 1 data FAQ baru.
+- `POST /api/faqs/category/{kode_kategori}` : Pengiriman data FAQ langsung terikat ke kategori OPD.
+- `POST /api/faqs/batch` : Pengiriman data FAQ secara massal (*bulk ingestion*).
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+Contoh request cURL:
+```bash
+curl -X POST "http://cepad/dilan/api/faqs/category/nama-kategori" \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: your_api_key_here" \
+  -d '{
+    "judul": "Bagaimana cara mendaftar antrean online?",
+    "isi": "<p>Silakan gunakan menu pendaftaran pada aplikasi.</p>",
+    "kata_kunci": "antrean, pendaftaran"
+  }'
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+---
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+## 👥 Pengembang & Hak Cipta
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+- **Pengembang**: Muhammad Rusyaid, S.Kom., M.Si. (Pranata Komputer Ahli Muda Diskominfo Sinjai / Software House Developer)
+- **Instansi**: Dinas Komunikasi, Informatika, dan Persandian Kabupaten Sinjai
+- **Lisensi**: MIT License

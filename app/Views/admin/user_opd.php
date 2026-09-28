@@ -276,6 +276,72 @@
     </div>
 </div>
 
+<!-- Modal Panduan API Umum (tombol header "Panduan API") -->
+<div id="modalApiGuide" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform scale-95 transition-all max-h-[90vh] flex flex-col">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/60">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
+                    <i class="fas fa-plug text-base"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Panduan Integrasi API Dilan</h3>
+                    <p class="text-xs text-slate-500">Cara mengirim FAQ dari aplikasi OPD ke sistem Dilan secara otomatis.</p>
+                </div>
+            </div>
+            <button onclick="toggleModal('modalApiGuide')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-600">
+
+            <!-- Langkah 1 -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-2">1. Dapatkan API Key</span>
+                <p class="text-slate-500 mb-2">Setiap akun User OPD memiliki <strong>API Key unik</strong> yang tampil di kolom "Kunci API" pada tabel ini. Gunakan tombol <i class="fas fa-key text-amber-500"></i> untuk generate ulang jika diperlukan.</p>
+                <code class="block bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-[11px]">X-API-KEY: dilan_key_xxxxxxxxxxxxxxxx</code>
+            </div>
+
+            <!-- Langkah 2 -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-2">2. Endpoint Pengiriman Berdasarkan Kode Kategori</span>
+                <div class="flex items-center gap-2 mb-2 font-mono text-[11px]">
+                    <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-bold">POST</span>
+                    <span class="text-slate-800 font-semibold select-all"><?= base_url('api/faqs/category/{kode_kategori}') ?></span>
+                </div>
+                <p class="text-slate-500 mb-2">Ganti <code class="bg-slate-200 px-1 rounded">{kode_kategori}</code> dengan kode slug OPD (tersedia di kolom "Kategori OPD" halaman ini, contoh: <code class="bg-slate-200 px-1 rounded">enikda</code>, <code class="bg-slate-200 px-1 rounded">pkm-sinjai</code>).</p>
+                <p class="text-slate-500">Payload JSON yang dikirim:</p>
+                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto mt-1">{
+  "judul": "Pertanyaan tentang layanan",
+  "isi": "&lt;p&gt;Penjelasan jawaban layanan...&lt;/p&gt;",
+  "kata_kunci": "layanan, info, opd"
+}</pre>
+            </div>
+
+            <!-- Langkah 3 -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-2">3. Contoh cURL</span>
+                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto select-all">curl -X POST "<?= base_url('api/faqs/category/enikda') ?>" \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: dilan_key_xxxxxxxxxxxxxxxx" \
+  -d '{
+    "judul": "Pertanyaan Layanan Enikda",
+    "isi": "<p>Penjelasan jawaban...</p>",
+    "kata_kunci": "enikda, layanan"
+  }'</pre>
+            </div>
+
+            <!-- Langkah 4 -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-2">4. Panduan Spesifik per User OPD</span>
+                <p class="text-slate-500">Untuk melihat panduan lengkap dengan API Key, endpoint, dan contoh kode siap-pakai per masing-masing OPD, klik tombol <i class="fa-solid fa-circle-info text-indigo-500"></i> pada kolom <strong>Aksi</strong> di baris user yang diinginkan.</p>
+            </div>
+
+        </div>
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <button onclick="toggleModal('modalApiGuide')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentUserApiKey = '';
 

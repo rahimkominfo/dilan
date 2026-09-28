@@ -92,11 +92,14 @@ class Admin extends BaseController
     {
         $keyword = $this->request->getVar('keyword') ?? '';
 
-        $kategoriQuery = $this->kategoriModel;
+        $kategoriQuery = $this->kategoriModel
+            ->select('kategori.*, pengguna.api_key, pengguna.nip')
+            ->join('pengguna', 'pengguna.kategori_id = kategori.kategori_id', 'left');
 
         if ($keyword !== '') {
             $kategoriQuery = $kategoriQuery->groupStart()
-                ->like('nama_kategori', $keyword)
+                ->like('kategori.nama_kategori', $keyword)
+                ->orLike('pengguna.nip', $keyword)
                 ->groupEnd();
         }
 
@@ -230,7 +233,7 @@ class Admin extends BaseController
 
         $keyword = $this->request->getVar('keyword') ?? '';
 
-        $userQuery = $userModel->select('pengguna.*, kategori.nama_kategori')
+        $userQuery = $userModel->select('pengguna.*, kategori.nama_kategori, kategori.kode_kategori')
             ->join('kategori', 'kategori.kategori_id = pengguna.kategori_id', 'left');
 
         if ($keyword !== '') {
@@ -310,8 +313,25 @@ class Admin extends BaseController
 
     public function user_info()
     {
-        $kategori_id = session()->get('kategori_id'); // From login session
         $nip = session()->get('nip');
+        $userModel = new \App\Models\UserModel();
+
+        // Ambil seluruh akun / kategori yang terikat pada NIP user yang sedang login
+        $userCategories = [];
+        if ($nip) {
+            $userCategories = $userModel->select('pengguna.*, kategori.nama_kategori, kategori.kode_kategori')
+                ->join('kategori', 'kategori.kategori_id = pengguna.kategori_id', 'left')
+                ->where('pengguna.nip', $nip)
+                ->findAll();
+        }
+
+        $kategori_id = session()->get('kategori_id');
+        // Jika session kategori_id belum ada atau tidak terdaftar pada akun user, set default ke kategori pertama
+        if (!$kategori_id && !empty($userCategories)) {
+            $kategori_id = $userCategories[0]['kategori_id'];
+            session()->set('kategori_id', $kategori_id);
+        }
+
         $kategoriName = 'Semua Kategori';
         $keyword = trim($this->request->getVar('keyword') ?? '');
 
@@ -333,8 +353,7 @@ class Admin extends BaseController
                 ->groupEnd();
         }
 
-        // Ambil data pengguna login untuk mendapatkan API Key
-        $userModel = new \App\Models\UserModel();
+        // Ambil data pengguna aktif sesuai kategori yang dipilih untuk mendapatkan API Key
         $currentUser = null;
         if ($nip && $kategori_id) {
             $currentUser = $userModel->where('nip', $nip)->where('kategori_id', $kategori_id)->first();
@@ -349,16 +368,38 @@ class Admin extends BaseController
         }
 
         $data = [
-            'title'         => 'Dashboard User OPD - Dilan',
-            'informasi'     => $infoQuery->paginate(10, 'user_info'),
-            'pager'         => $this->infoModel->pager,
-            'keyword'       => $keyword,
-            'kategori_name' => $kategoriName,
-            'kategori_id'   => $kategori_id,
-            'api_key'       => $apiKey,
-            'user_opd'      => $currentUser
+            'title'           => 'Dashboard User OPD - Dilan',
+            'informasi'       => $infoQuery->paginate(10, 'user_info'),
+            'pager'           => $this->infoModel->pager,
+            'keyword'         => $keyword,
+            'kategori_name'   => $kategoriName,
+            'kategori_id'     => $kategori_id,
+            'api_key'         => $apiKey,
+            'user_opd'        => $currentUser,
+            'user_categories' => $userCategories
         ];
         return view('admin/user_info', $data);
+    }
+
+    public function user_info_switch_kategori($newKategoriId)
+    {
+        $nip = session()->get('nip');
+        $userModel = new \App\Models\UserModel();
+
+        // Validasi apakah user berhak mengakses kategori ini
+        $isAuthorized = $userModel->where('nip', $nip)
+            ->where('kategori_id', (int)$newKategoriId)
+            ->first();
+
+        // Jika peran admin, selalu izinkan
+        if (session()->get('peran') === 'admin' || $isAuthorized) {
+            session()->set('kategori_id', (int)$newKategoriId);
+            $kat = $this->kategoriModel->find((int)$newKategoriId);
+            $namaKat = $kat['nama_kategori'] ?? 'Kategori';
+            return redirect()->to(base_url('admin/user_info'))->with('success', "Berhasil berpindah ke kategori: {$namaKat}");
+        }
+
+        return redirect()->to(base_url('admin/user_info'))->with('error', 'Anda tidak memiliki hak akses ke kategori tersebut.');
     }
 
     public function form_info_user($id = null)

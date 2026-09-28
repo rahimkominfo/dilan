@@ -32,6 +32,7 @@ $routes->group('admin', function($routes) {
 
     // User OPD Informasi CRUD
     $routes->get('user_info', 'Admin::user_info');
+    $routes->get('user_info/switch_kategori/(:num)', 'Admin::user_info_switch_kategori/$1');
     $routes->post('user_info/store', 'Admin::user_info_store');
     $routes->get('form_info_user', 'Admin::form_info_user');
     $routes->get('form_info_user/(:num)', 'Admin::form_info_user/$1');

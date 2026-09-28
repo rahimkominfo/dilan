@@ -30,7 +30,7 @@
                 <tr>
                     <th class="py-4 px-6 w-20">No.</th>
                     <th class="py-4 px-6">Nama Kategori</th>
-                    <th class="py-4 px-6 text-center w-32">Aksi</th>
+                    <th class="py-4 px-6 text-center w-36">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -43,11 +43,15 @@
                 <tr class="hover:bg-slate-50/80 transition-colors">
                     <td class="py-4 px-6 font-semibold"><?= $no++ ?>.</td>
                     <td class="py-4 px-6 font-semibold text-slate-900"><?= esc($kat['nama_kategori']) ?></td>
-                    <td class="py-4 px-6 text-center">
-                        <div class="flex items-center justify-center space-x-3">
-                            <button onclick="openEditModal(<?= $kat['kategori_id'] ?>, '<?= esc($kat['nama_kategori'], 'js') ?>')" class="text-slate-400 hover:text-brand-600 transition-colors text-base" title="Edit"><i class="fas fa-edit"></i></button>
+                    <td class="py-4 px-6 text-center text-nowrap">
+                        <div class="btn-group btn-group-sm text-nowrap inline-flex items-center space-x-2" role="group">
+                            <button type="button" onclick="openEditModal(<?= $kat['kategori_id'] ?>, '<?= esc($kat['nama_kategori'], 'js') ?>')" class="text-slate-400 hover:text-brand-600 transition-colors text-base" title="Edit Kategori">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <form action="<?= base_url('admin/kategori/delete/' . $kat['kategori_id']) ?>" method="post" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini?');">
-                                <button type="submit" class="text-slate-400 hover:text-red-600 transition-colors text-base" title="Hapus"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="text-slate-400 hover:text-red-600 transition-colors text-base" title="Hapus Kategori">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
@@ -121,6 +125,7 @@
     function toggleModal(id) {
         document.getElementById(id).classList.toggle('hidden');
     }
+
     function openEditModal(id, nama) {
         const modal = document.getElementById('modalEditKategori');
         const form = document.getElementById('formEditKategori');

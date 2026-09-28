@@ -82,16 +82,24 @@
                             <span class="text-slate-400 italic">Tidak ada URL</span>
                         <?php endif; ?>
                     </td>
-                    <td class="py-4 px-6 text-center">
-                        <div class="flex items-center justify-center space-x-2.5">
-                            <button onclick="openEditModal(<?= $user['pengguna_id'] ?>, '<?= esc($user['nip'], 'js') ?>', <?= $user['kategori_id'] ?>, '<?= esc($user['url_apk'], 'js') ?>', '<?= esc($user['api_key'] ?? '', 'js') ?>')" class="text-slate-400 hover:text-brand-600 text-sm" title="Edit Data User"><i class="fas fa-edit"></i></button>
-                            
-                            <a href="<?= base_url('admin/user_opd/regenerate_api_key/' . $user['pengguna_id']) ?>" onclick="return confirm('Apakah Anda yakin ingin me-reset API Key ini? Aplikasi luar yang memakai key lama harus diubah.');" class="text-slate-400 hover:text-amber-600 text-sm" title="Generate Ulang API Key">
+                    <td class="py-4 px-6 text-center text-nowrap">
+                        <div class="btn-group btn-group-sm text-nowrap inline-flex items-center space-x-2" role="group">
+                            <?php 
+                            $kodeSlug = !empty($user['kode_kategori']) ? $user['kode_kategori'] : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $user['nama_kategori'] ?? 'kategori'), '-'));
+                            ?>
+                            <button type="button" onclick="openUserApiGuide('<?= esc($user['nama'] ?? $user['nip'], 'js') ?>', '<?= esc($user['nama_kategori'] ?? 'OPD', 'js') ?>', '<?= esc($kodeSlug, 'js') ?>', <?= (int)$user['kategori_id'] ?>, '<?= esc($user['api_key'] ?? '', 'js') ?>')" class="text-slate-400 hover:text-indigo-600 transition-colors text-base" title="Panduan API User OPD Ini">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                            <button type="button" onclick="openEditModal(<?= $user['pengguna_id'] ?>, '<?= esc($user['nip'], 'js') ?>', <?= $user['kategori_id'] ?>, '<?= esc($user['url_apk'], 'js') ?>', '<?= esc($user['api_key'] ?? '', 'js') ?>')" class="text-slate-400 hover:text-brand-600 transition-colors text-base" title="Edit Data User">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="<?= base_url('admin/user_opd/regenerate_api_key/' . $user['pengguna_id']) ?>" onclick="return confirm('Apakah Anda yakin ingin me-reset API Key ini? Aplikasi luar yang memakai key lama harus diubah.');" class="text-slate-400 hover:text-amber-600 transition-colors text-base" title="Generate Ulang API Key">
                                 <i class="fas fa-key"></i>
                             </a>
-
                             <form action="<?= base_url('admin/user_opd/delete/' . $user['pengguna_id']) ?>" method="post" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun user ini?');">
-                                <button type="submit" class="text-slate-400 hover:text-red-600 text-sm" title="Hapus"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="text-slate-400 hover:text-red-600 transition-colors text-base" title="Hapus User OPD">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
@@ -197,60 +205,85 @@
     </div>
 </div>
 
-<!-- Modal Panduan Integrasi API -->
-<div id="modalApiGuide" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+<!-- Modal Panduan API Spesifik User OPD -->
+<div id="modalUserApiGuide" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform scale-95 transition-all max-h-[90vh] flex flex-col">
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/60">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                    <i class="fas fa-plug text-sm"></i>
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-circle-info text-base"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-900 text-base">Panduan Pengiriman Data API</h3>
-                    <p class="text-xs text-slate-400">Mekanisme kirim data FAQ langsung dari aplikasi eksternal OPD ke Dilan.</p>
+                    <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <span>Panduan Integrasi API:</span>
+                        <span id="userGuideOpdName" class="text-indigo-600 font-extrabold"></span>
+                    </h3>
+                    <p class="text-xs text-slate-500">Mekanisme koneksi & kirim FAQ otomatis dari aplikasi OPD ini ke Dilan.</p>
                 </div>
             </div>
-            <button onclick="toggleModal('modalApiGuide')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
+            <button onclick="toggleModal('modalUserApiGuide')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
         </div>
         <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-600 custom-scrollbar">
+            <!-- Autentikasi API Key OPD -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span class="font-bold text-slate-800 block mb-1">1. Autentikasi Kunci API</span>
-                <p class="text-slate-500 mb-2">Setiap request pengiriman data wajib menyertakan HTTP Header:</p>
-                <code class="block bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-[11px]">X-API-KEY: [Kunci_API_OPD_Anda]</code>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold text-slate-800">1. Kunci API OPD (X-API-KEY)</span>
+                    <span id="userGuidePegawaiName" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700"></span>
+                </div>
+                <p class="text-slate-500 mb-2">Gunakan Header autentikasi resmi ini saat melakukan request ke API Dilan:</p>
+                <div class="flex items-center gap-2">
+                    <code id="userGuideApiKey" class="block flex-1 bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-[11px] overflow-x-auto select-all"></code>
+                    <button type="button" onclick="copyUserApiKey()" class="px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0" title="Salin API Key">
+                        <i class="far fa-copy"></i>
+                        <span>Salin</span>
+                    </button>
+                </div>
             </div>
 
+            <!-- Endpoint Khusus -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span class="font-bold text-slate-800 block mb-1">2. Endpoint Pengiriman Data FAQ Tunggal</span>
+                <span class="font-bold text-slate-800 block mb-1">2. Endpoint Pengiriman Otomatis ke Kategori OPD Ini</span>
                 <div class="flex items-center gap-2 mb-2 font-mono text-[11px]">
                     <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-bold">POST</span>
-                    <span class="text-slate-800 font-semibold"><?= base_url('api/faqs') ?></span>
+                    <span id="userGuideEndpoint" class="text-slate-800 font-semibold select-all"></span>
                 </div>
-                <p class="text-slate-500 mb-2">Payload JSON:</p>
+                
+                <p class="text-slate-500 mb-1">Payload JSON (otomatis terikat dengan kategori OPD):</p>
                 <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto">{
-  "judul": "Bagaimana cara melakukan pendaftaran online?",
-  "isi": "&lt;p&gt;Silakan klik menu pendaftaran pada website.&lt;/p&gt;",
-  "kata_kunci": "daftar, online, antrean"
+  "judul": "Contoh Pertanyaan Layanan",
+  "isi": "&lt;p&gt;Penjelasan jawaban informasi layanan...&lt;/p&gt;",
+  "kata_kunci": "layanan, pendaftaran, opd"
 }</pre>
             </div>
 
+            <!-- cURL Contoh Siap Pakai -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span class="font-bold text-slate-800 block mb-1">3. Contoh Kirim via cURL</span>
-                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto">curl -X POST "<?= base_url('api/faqs') ?>" \
-  -H "Content-Type: application/json" \
-  -H "X-API-KEY: your_api_key_here" \
-  -d '{"judul": "Tanya FAQ", "isi": "Jawaban FAQ"}'</pre>
+                <span class="font-bold text-slate-800 block mb-1">3. Contoh Perintah cURL (Siap Pakai)</span>
+                <pre id="userGuideCurl" class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto select-all"></pre>
+            </div>
+
+            <!-- PHP cURL Sample -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-1">4. Contoh Integrasi Backend PHP / CodeIgniter</span>
+                <pre id="userGuidePhp" class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto select-all"></pre>
             </div>
         </div>
         <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-            <button onclick="toggleModal('modalApiGuide')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Tutup</button>
+            <button onclick="toggleModal('modalUserApiGuide')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Tutup</button>
         </div>
     </div>
 </div>
 
 <script>
+    let currentUserApiKey = '';
+
     function toggleModal(id) {
-        document.getElementById(id).classList.toggle('hidden');
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.toggle('hidden');
+        }
     }
+
     function openEditModal(id, nip, idKategori, urlApk, apiKey) {
         const modal = document.getElementById('modalEditUser');
         const form = document.getElementById('formEditUser');
@@ -263,7 +296,46 @@
         
         modal.classList.remove('hidden');
     }
+
+    function openUserApiGuide(namaPegawai, namaKategori, kodeSlug, kategoriId, apiKey) {
+        currentUserApiKey = apiKey || '';
+        
+        document.getElementById('userGuideOpdName').innerText = namaKategori;
+        document.getElementById('userGuidePegawaiName').innerText = 'Pegawai: ' + namaPegawai;
+        
+        const apiKeyElement = document.getElementById('userGuideApiKey');
+        const keyForCurl = currentUserApiKey ? currentUserApiKey : 'KUNCI_API_BELUM_DIBUAT';
+        
+        if (currentUserApiKey) {
+            apiKeyElement.innerText = 'X-API-KEY: ' + currentUserApiKey;
+        } else {
+            apiKeyElement.innerText = 'X-API-KEY: (Belum dibuat - silakan klik tombol kunci untuk generate)';
+        }
+        
+        const endpointUrl = `<?= base_url('api/faqs/category') ?>/${kodeSlug}`;
+        document.getElementById('userGuideEndpoint').innerText = endpointUrl;
+
+        const curlSample = `curl -X POST "${endpointUrl}" \\\n  -H "Content-Type: application/json" \\\n  -H "X-API-KEY: ${keyForCurl}" \\\n  -d '{\n    "judul": "Tanya Layanan ${namaKategori}",\n    "isi": "<p>Penjelasan informasi...</p>",\n    "kata_kunci": "info, layanan"\n  }'`;
+        document.getElementById('userGuideCurl').innerText = curlSample;
+
+        const phpSample = `// Kirim data FAQ dari aplikasi ${namaKategori}\n$ch = curl_init('${endpointUrl}');\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\ncurl_setopt($ch, CURLOPT_POST, true);\ncurl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([\n    'judul' => 'Contoh Pertanyaan',\n    'isi' => '<p>Jawaban lengkap...</p>',\n    'kata_kunci' => 'layanan'\n]));\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n    'Content-Type: application/json',\n    'X-API-KEY: ${keyForCurl}'\n]);\n$response = curl_exec($ch);\ncurl_close($ch);`;
+        document.getElementById('userGuidePhp').innerText = phpSample;
+
+        document.getElementById('modalUserApiGuide').classList.remove('hidden');
+    }
+
+    function copyUserApiKey() {
+        if (!currentUserApiKey) {
+            alert('User ini belum memiliki API Key. Silakan klik tombol generate kunci terlebih dahulu.');
+            return;
+        }
+        navigator.clipboard.writeText(currentUserApiKey).then(() => {
+            alert('Kunci API OPD berhasil disalin!');
+        });
+    }
+
     function copyToClipboard(text) {
+        if (!text) return;
         navigator.clipboard.writeText(text).then(function() {
             alert('Kunci API berhasil disalin ke clipboard!');
         }, function(err) {

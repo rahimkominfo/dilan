@@ -11,15 +11,57 @@
                     <i class="fas fa-building text-base"></i>
                 </div>
                 <div>
-                    <span class="text-base font-bold text-slate-800 tracking-tight block leading-tight"><?= esc($kategori_name ?? 'User OPD') ?></span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-base font-bold text-slate-800 tracking-tight block leading-tight"><?= esc($kategori_name ?? 'User OPD') ?></span>
+                        <?php if (!empty($user_categories) && count($user_categories) > 1): ?>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                <?= count($user_categories) ?> Kategori Terhubung
+                            </span>
+                        <?php endif; ?>
+                    </div>
                     <span class="text-[11px] text-slate-400 font-medium">Panel Manajemen Informasi</span>
                 </div>
             </div>
             
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
+                <!-- Dropdown Switch Kategori (Jika Memegang Lebih dari 1 Kategori) -->
+                <?php if (!empty($user_categories) && count($user_categories) > 1): ?>
+                <div class="relative">
+                    <button type="button" onclick="toggleCategoryDropdown()" id="btnCategorySwitch" class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-xl text-xs font-semibold text-slate-700 hover:text-indigo-700 transition-all duration-300">
+                        <i class="fas fa-arrows-rotate text-indigo-500 text-xs"></i>
+                        <span class="hidden sm:inline">Ganti Kategori:</span>
+                        <span class="font-bold text-indigo-600 truncate max-w-[140px]"><?= esc($kategori_name) ?></span>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+
+                    <!-- Menu Dropdown Switcher -->
+                    <div id="dropdownCategoryMenu" class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200/80 py-2 z-50 hidden transform transition-all duration-200">
+                        <div class="px-3 py-1.5 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Pilih Kategori Aktif
+                        </div>
+                        <div class="max-h-60 overflow-y-auto py-1">
+                            <?php foreach ($user_categories as $ucat): 
+                                $isActive = ($ucat['kategori_id'] == $kategori_id);
+                                $kodeSlug = !empty($ucat['kode_kategori']) ? $ucat['kode_kategori'] : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $ucat['nama_kategori'] ?? ''), '-'));
+                            ?>
+                            <a href="<?= base_url('admin/user_info/switch_kategori/' . $ucat['kategori_id']) ?>" class="flex items-center justify-between px-3.5 py-2.5 text-xs transition-colors <?= $isActive ? 'bg-indigo-50/80 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium' ?>">
+                                <div class="truncate mr-2">
+                                    <div class="truncate"><?= esc($ucat['nama_kategori']) ?></div>
+                                    <div class="text-[10px] text-slate-400 font-mono font-normal"><?= esc($kodeSlug) ?></div>
+                                </div>
+                                <?php if ($isActive): ?>
+                                    <i class="fas fa-check-circle text-indigo-600 text-sm shrink-0"></i>
+                                <?php endif; ?>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-50/80 text-indigo-700 border border-indigo-100 shadow-xs transition-all duration-300 ease-in-out hover:bg-indigo-100/80">
                     <i class="fas fa-user-circle mr-2 text-indigo-500"></i>
-                    <?= esc(session()->get('nama') ?? 'Operator Daerah') ?>
+                    <span class="truncate max-w-[120px]"><?= esc(session()->get('nama') ?? 'Operator Daerah') ?></span>
                 </span>
                 <a href="<?= base_url('auth/logout') ?>" class="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300 ease-in-out" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
@@ -305,6 +347,22 @@ if ($httpCode === 201 &amp;&amp; $result['success']) {
                 modal.classList.toggle('hidden');
             }
         }
+
+        function toggleCategoryDropdown() {
+            const menu = document.getElementById('dropdownCategoryMenu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Tutup dropdown jika klik di luar
+        window.addEventListener('click', function(e) {
+            const btn = document.getElementById('btnCategorySwitch');
+            const menu = document.getElementById('dropdownCategoryMenu');
+            if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
 
         function copyApiKey(key) {
             if (!key) return;

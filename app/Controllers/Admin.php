@@ -255,7 +255,7 @@ class Admin extends BaseController
             'title'    => 'Kelola User OPD - Panel Admin',
             'user_opd' => $userData,
             'pager'    => $userModel->pager,
-            'kategori' => $kategoriModel->findAll(),
+            'kategori' => $kategoriModel->orderBy('nama_kategori', 'ASC')->findAll(),
             'keyword'  => $keyword
         ];
         return view('admin/user_opd', $data);

@@ -142,8 +142,9 @@
         <form action="<?= base_url('admin/user_opd/store') ?>" method="post" class="p-6 space-y-4">
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kategori OPD</label>
-                <select name="kategori_id" required class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                    <option value="">Pilih Kategori OPD...</option>
+                <input type="text" id="filterKategoriAdd" oninput="filterSelectOptions('filterKategoriAdd','selectKategoriAdd')" placeholder="Ketik untuk cari kategori..." class="block w-full px-4 py-2.5 mb-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-xs text-slate-700">
+                <select id="selectKategoriAdd" name="kategori_id" required size="5" class="block w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                    <option value="">-- Pilih Kategori OPD --</option>
                     <?php foreach($kategori as $kat): ?>
                         <option value="<?= $kat['kategori_id'] ?>"><?= esc($kat['nama_kategori']) ?></option>
                     <?php endforeach; ?>
@@ -179,7 +180,8 @@
         <form id="formEditUser" action="" method="post" class="p-6 space-y-4">
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kategori OPD</label>
-                <select id="edit_id_kategori" name="kategori_id" required class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                <input type="text" id="filterKategoriEdit" oninput="filterSelectOptions('filterKategoriEdit','edit_id_kategori')" placeholder="Ketik untuk cari kategori..." class="block w-full px-4 py-2.5 mb-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-xs text-slate-700">
+                <select id="edit_id_kategori" name="kategori_id" required size="5" class="block w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
                     <?php foreach($kategori as $kat): ?>
                         <option value="<?= $kat['kategori_id'] ?>"><?= esc($kat['nama_kategori']) ?></option>
                     <?php endforeach; ?>
@@ -288,6 +290,10 @@
         const modal = document.getElementById('modalEditUser');
         const form = document.getElementById('formEditUser');
         
+        // Reset filter pencarian kategori
+        const filterEdit = document.getElementById('filterKategoriEdit');
+        if (filterEdit) { filterEdit.value = ''; filterSelectOptions('filterKategoriEdit', 'edit_id_kategori'); }
+
         form.action = `<?= base_url('admin/user_opd/update') ?>/${id}`;
         document.getElementById('edit_nip').value = nip;
         document.getElementById('edit_id_kategori').value = idKategori;
@@ -342,5 +348,24 @@
             console.error('Gagal menyalin:', err);
         });
     }
+
+    // Filter/search dropdown kategori
+    function filterSelectOptions(inputId, selectId) {
+        const keyword = document.getElementById(inputId).value.toLowerCase();
+        const select  = document.getElementById(selectId);
+        Array.from(select.options).forEach(opt => {
+            const match = opt.text.toLowerCase().includes(keyword);
+            opt.style.display = match ? '' : 'none';
+        });
+        // Auto-select jika hanya 1 option yang cocok
+        const visible = Array.from(select.options).filter(o => o.style.display !== 'none' && o.value !== '');
+        if (visible.length === 1) select.value = visible[0].value;
+    }
+
+    // Reset filter pencarian saat modal Tambah dibuka
+    document.querySelector('[onclick="toggleModal(\'modalUser\')"]')?.addEventListener('click', function() {
+        const f = document.getElementById('filterKategoriAdd');
+        if (f) { f.value = ''; filterSelectOptions('filterKategoriAdd', 'selectKategoriAdd'); }
+    });
 </script>
 <?= $this->endSection() ?>

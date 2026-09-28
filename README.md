@@ -90,8 +90,10 @@ curl -X POST "http://cepad/dilan/api/faqs/category/nama-kategori" \
 
 ---
 
-## 👥 Pengembang & Hak Cipta
+## 👥 Tim Pengembang & Hak Cipta
 
-- **Pengembang**: Muhammad Rusyaid, S.Kom., M.Si. (Pranata Komputer Ahli Muda Diskominfo Sinjai / Software House Developer)
+- **Pengembang**: **Tim Pengembang Aplikasi & Layanan Digital**  
+  *Bidang Aplikasi Informatika & Persandian*
 - **Instansi**: Dinas Komunikasi, Informatika, dan Persandian Kabupaten Sinjai
+- **Hak Cipta**: &copy; <?= date('Y') ?> Pemerintah Kabupaten Sinjai. All rights reserved.
 - **Lisensi**: MIT License

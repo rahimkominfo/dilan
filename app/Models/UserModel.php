@@ -12,7 +12,7 @@ class UserModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['nip', 'password', 'peran', 'kategori_id', 'url_apk'];
+    protected $allowedFields    = ['nip', 'password', 'peran', 'kategori_id', 'url_apk', 'api_key'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -43,4 +43,32 @@ class UserModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    /**
+     * Cari pengguna berdasarkan API Key
+     *
+     * @param string $apiKey
+     * @return array|null
+     */
+    public function findByApiKey(string $apiKey): ?array
+    {
+        if (empty($apiKey)) {
+            return null;
+        }
+
+        return $this->where('api_key', trim($apiKey))->first();
+    }
+
+    /**
+     * Buat dan simpan API Key baru untuk pengguna
+     *
+     * @param int $penggunaId
+     * @return string
+     */
+    public function generateApiKey(int $penggunaId): string
+    {
+        $newKey = 'dilan_key_' . bin2hex(random_bytes(16));
+        $this->update($penggunaId, ['api_key' => $newKey]);
+        return $newKey;
+    }
 }

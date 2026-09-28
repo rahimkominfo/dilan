@@ -29,6 +29,39 @@
 
         <!-- Main Content scrollable -->
         <main class="flex-grow overflow-y-auto p-6 bg-slate-50/50 custom-scrollbar">
+            
+            <!-- Banner Integrasi API Pengiriman Data -->
+            <?php if (!empty($api_key)): ?>
+            <div class="mb-6 p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl shadow-indigo-950/10 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-indigo-700/30 transition-all duration-300">
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+                        <i class="fas fa-plug text-indigo-300 text-base"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">Integrasi API Pengiriman Data</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Aktif</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5">Kirim dan sinkronkan data FAQ langsung dari aplikasi eksternal OPD Anda via REST API.</p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="flex items-center bg-slate-950/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-indigo-200">
+                        <span class="text-slate-400 mr-2 text-[10px] uppercase font-sans font-bold">API Key:</span>
+                        <span><?= substr(esc($api_key), 0, 16) ?>...</span>
+                        <button type="button" onclick="copyApiKey('<?= esc($api_key, 'js') ?>')" class="ml-2.5 text-indigo-400 hover:text-white transition-colors" title="Salin Kunci API Lengkap">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <button type="button" onclick="toggleModal('modalUserInfoApiGuide')" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all flex items-center gap-2">
+                        <i class="fas fa-book-open text-xs"></i>
+                        <span>Panduan Integrasi</span>
+                    </button>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Table Card -->
             <div class="bg-white rounded-3xl border border-slate-200/60 shadow-[0_10px_30px_rgba(15,23,42,0.05)] overflow-hidden transition-all duration-300 ease-in-out">
                 
@@ -160,5 +193,127 @@
             </div>
         </main>
     </div>
+
+    <!-- Modal Panduan Pengiriman Data API untuk User OPD -->
+    <div id="modalUserInfoApiGuide" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform scale-95 transition-all max-h-[92vh] flex flex-col">
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+                        <i class="fas fa-plug text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Panduan Pengiriman Data API</h3>
+                        <p class="text-xs text-slate-400">Integrasikan aplikasi OPD Anda untuk mengirim data FAQ secara otomatis.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleModal('modalUserInfoApiGuide')" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-600 custom-scrollbar">
+                <!-- Info Kunci API -->
+                <div class="bg-indigo-50/60 border border-indigo-100 p-4 rounded-2xl">
+                    <span class="font-bold text-indigo-950 block text-xs mb-1">Kredensial API OPD Anda</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2">
+                        <div class="font-mono text-[11px] text-indigo-900 bg-white px-3 py-2 rounded-xl border border-indigo-200/70 select-all break-all">
+                            <?= esc($api_key ?? '-') ?>
+                        </div>
+                        <button type="button" onclick="copyApiKey('<?= esc($api_key ?? '', 'js') ?>')" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fas fa-copy"></i>
+                            <span>Salin API Key</span>
+                        </button>
+                    </div>
+                    <span class="text-[11px] text-indigo-600 mt-2 block">Kategori Anda: <b>#<?= esc($kategori_id ?? 0) ?> (<?= esc($kategori_name ?? '') ?>)</b>. Seluruh data yang Anda kirim otomatis terisolasi dan tersimpan di kategori ini.</span>
+                </div>
+
+                <!-- Endpoint & Header -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span class="font-bold text-slate-800 block mb-1">1. Endpoint & Header HTTP</span>
+                    <div class="space-y-1.5 font-mono text-[11px] mt-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-bold text-[10px]">POST</span>
+                            <span class="text-slate-800 font-semibold"><?= base_url('api/faqs') ?></span>
+                        </div>
+                        <div class="text-slate-500 pt-1">
+                            Header wajib:
+                            <div class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl mt-1 space-y-0.5">
+                                <div>Content-Type: application/json</div>
+                                <div>X-API-KEY: <?= esc($api_key ?? 'your_api_key_here') ?></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contoh cURL -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span class="font-bold text-slate-800 block mb-1">2. Contoh Pengiriman via cURL (Terminal)</span>
+                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] overflow-x-auto leading-relaxed mt-2">curl -X POST "<?= base_url('api/faqs') ?>" \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: <?= esc($api_key ?? 'your_api_key_here') ?>" \
+  -d '{
+    "judul": "Bagaimana cara mendaftar antrean online?",
+    "isi": "&lt;p&gt;Silakan kunjungi menu antrean di aplikasi kami.&lt;/p&gt;",
+    "kata_kunci": "antrean, pendaftaran"
+  }'</pre>
+                </div>
+
+                <!-- Contoh PHP -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span class="font-bold text-slate-800 block mb-1">3. Contoh Integrasi PHP (cURL)</span>
+                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-xl font-mono text-[11px] overflow-x-auto leading-relaxed mt-2">&lt;?php
+$payload = [
+    'judul'      => 'Pertanyaan Baru dari Aplikasi',
+    'isi'        => '&lt;p&gt;Jawaban lengkap informasi...&lt;/p&gt;',
+    'kata_kunci' => 'layanan, panduan'
+];
+
+$ch = curl_init('<?= base_url('api/faqs') ?>');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-API-KEY: <?= esc($api_key ?? 'your_api_key_here') ?>'
+]);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$result = json_decode($response, true);
+if ($httpCode === 201 &amp;&amp; $result['success']) {
+    echo "Berhasil dikirim! ID: " . $result['data']['id'];
+}
+?&gt;</pre>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-slate-100 bg-slate-50/80 flex justify-end">
+                <button type="button" onclick="toggleModal('modalUserInfoApiGuide')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition-colors">
+                    Tutup Panduan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        function copyApiKey(key) {
+            if (!key) return;
+            navigator.clipboard.writeText(key).then(function() {
+                alert('API Key berhasil disalin ke clipboard!');
+            }, function(err) {
+                console.error('Gagal menyalin:', err);
+            });
+        }
+    </script>
 </body>
 <?= $this->endSection() ?>

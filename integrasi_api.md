@@ -1,15 +1,18 @@
-# Dokumentasi Integrasi REST API FAQ Knowledge Base
+# Dokumentasi Integrasi REST API FAQ Knowledge Base & Pengiriman Data
 
-Dokumen ini berisi spesifikasi teknis dan panduan integrasi REST API FAQ Knowledge Base berbasis **CodeIgniter 4**. API ini dirancang khusus untuk memungkinkan aplikasi pihak ketiga (seperti aplikasi OPD, PKM Sinjai, dll.) mengambil data FAQ dan melakukan pencarian FAQ yang terbatas **hanya pada kategori tertentu**.
+Dokumen ini berisi spesifikasi teknis dan panduan integrasi REST API FAQ Knowledge Base berbasis **CodeIgniter 4**. API ini dirancang untuk dua arah integrasi:
+1. **Penerimaan / Pengambilan Data (Read)**: Mengambil data FAQ dan melakukan pencarian FAQ yang terisolasi berdasarkan kategori.
+2. **Pengiriman Data (Ingestion / Write)**: Memungkinkan aplikasi luar (seperti aplikasi OPD, PKM, dll.) mengirim, memperbarui, menyinkronkan (batch), dan menghapus data FAQ secara aman via API Key. Panduan lengkap pengiriman data dapat dibaca di: **[panduan_pengiriman_data_api.md](file:///var/www/html/dilan_ar/panduan_pengiriman_data_api.md)**.
 
 ---
 
 ## 📌 Ringkasan Fitur API
 
-1. **Scoping Kategori yang Ketat**: Hasil pencarian dan pengambilan data FAQ diisolasi sepenuhnya berdasarkan `category_id`. Tidak akan menampilkan data FAQ dari kategori lain.
-2. **Fleksibilitas Endpoint**: Mendukung endpoint standar `GET /api/faqs/category/{category_id}` dan endpoint pencarian dedicated `GET /api/faqs/category/{category_id}/search`.
-3. **Pencarian Multi-Kolom**: Pencarian dilakukan pada kolom `judul` (pertanyaan) dan `isi` (jawaban).
-4. **Respon JSON Terstandarisasi**: Mengembalikan status HTTP yang sesuai (200, 400, 404) dan struktur JSON yang konsisten.
+1. **Scoping Kategori yang Ketat**: Hasil pencarian, pengambilan, maupun pengiriman data FAQ diisolasi sepenuhnya berdasarkan `kategori_id` milik masing-masing OPD. Mencegah manipulasi data antar instansi/OPD.
+2. **Autentikasi Aman via API Key**: Pengiriman data dilindungi filter autentikasi `ApiKeyFilter` melalui HTTP Header `X-API-KEY` atau Bearer Token.
+3. **Fleksibilitas Endpoint**: Mendukung endpoint standar `GET /api/faqs/category/{category_id}`, `POST /api/faqs` (kirim tunggal), `POST /api/faqs/batch` (kirim massal), `PUT /api/faqs/{id}` (update), dan `DELETE /api/faqs/{id}`.
+4. **Pencarian Multi-Kolom**: Pencarian dilakukan pada kolom `judul` (pertanyaan) dan `isi` (jawaban).
+5. **Respon JSON Terstandarisasi**: Mengembalikan status HTTP yang sesuai (200, 201, 400, 401, 403, 404) dan struktur JSON yang konsisten.
 
 ---
 
@@ -18,9 +21,12 @@ Dokumen ini berisi spesifikasi teknis dan panduan integrasi REST API FAQ Knowled
 Semua komponen API telah diimplementasikan dalam struktur berikut:
 
 1. **Route API**: `routes/api.php` (Dimuat di `app/Config/Routes.php`)
-2. **Controller API**: `app/Controllers/FaqApiController.php`
-3. **Model Data**: `app/Models/InfoModel.php` & `app/Models/KategoriModel.php`
-4. **Unit Test**: `tests/unit/FaqApiControllerTest.php`
+2. **Filter Autentikasi**: `app/Filters/ApiKeyFilter.php` (Alias `api_auth` di `app/Config/Filters.php`)
+3. **Konfigurasi API**: `app/Config/Api.php`
+4. **Controller API**: `app/Controllers/FaqApiController.php`
+5. **Model Data**: `app/Models/InfoModel.php`, `app/Models/KategoriModel.php`, `app/Models/UserModel.php`, `app/Models/OperatorModel.php`
+6. **Unit Test**: `tests/unit/FaqApiControllerTest.php` & `tests/unit/FaqApiSendTest.php`
+7. **Skrip Contoh Klien**: `examples/api_client_example.php`
 
 ---
 

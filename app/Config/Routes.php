@@ -56,6 +56,8 @@ $routes->group('admin', function($routes) {
     $routes->post('user_opd/store', 'Admin::user_opd_store');
     $routes->post('user_opd/update/(:num)', 'Admin::user_opd_update/$1');
     $routes->post('user_opd/delete/(:num)', 'Admin::user_opd_delete/$1');
+    $routes->get('user_opd/regenerate_api_key/(:num)', 'Admin::user_opd_regenerate_api_key/$1');
+    $routes->post('user_opd/regenerate_api_key/(:num)', 'Admin::user_opd_regenerate_api_key/$1');
 });
 
 // Route Embed FAQ untuk Aplikasi Pihak Ketiga

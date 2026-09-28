@@ -18,6 +18,12 @@
                 </div>
             </form>
 
+            <!-- Tombol Panduan Integrasi API -->
+            <button onclick="toggleModal('modalApiGuide')" title="Panduan Integrasi API" class="px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0">
+                <i class="fas fa-plug text-indigo-600"></i>
+                <span>Panduan API</span>
+            </button>
+
             <button onclick="toggleModal('modalUser')" title="Tambah User" class="w-10 h-10 bg-brand-600 hover:bg-brand-500 text-white rounded-xl shadow-md transition-all flex items-center justify-center shrink-0">
                 <i class="fas fa-plus text-sm"></i>
             </button>
@@ -26,16 +32,16 @@
 
     <!-- Table Container -->
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-600 min-w-[800px]">
+        <table class="w-full text-left text-sm text-slate-600 min-w-[950px]">
             <thead class="bg-slate-50 text-slate-700 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100">
                 <tr>
-                    <th class="py-4 px-6 w-20">No.</th>
+                    <th class="py-4 px-6 w-16">No.</th>
                     <th class="py-4 px-6">NIP</th>
-                    <th class="py-4 px-6">Nama</th>
-                    <th class="py-4 px-6 w-32">Id Kategori</th>
+                    <th class="py-4 px-6">Nama Pegawai</th>
                     <th class="py-4 px-6">Kategori OPD</th>
+                    <th class="py-4 px-6">Kunci API (API Key)</th>
                     <th class="py-4 px-6">URL Aplikasi</th>
-                    <th class="py-4 px-6 text-center w-32">Aksi</th>
+                    <th class="py-4 px-6 text-center w-36">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -50,20 +56,42 @@
                     <td class="py-4 px-6 font-semibold"><?= $no++ ?>.</td>
                     <td class="py-4 px-6 text-slate-900 font-semibold"><?= esc($user['nip']) ?></td>
                     <td class="py-4 px-6 font-medium text-slate-900"><?= esc($user['nama'] ?? '-') ?></td>
-                    <td class="py-4 px-6"><?= esc($user['kategori_id']) ?></td>
-                    <td class="py-4 px-6 font-medium text-slate-900"><?= esc($user['nama_kategori'] ?? 'Tidak Terikat') ?></td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700">
+                            #<?= esc($user['kategori_id']) ?> - <?= esc($user['nama_kategori'] ?? 'Tidak Terikat') ?>
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <?php if (!empty($user['api_key'])): ?>
+                            <div class="flex items-center space-x-2">
+                                <code class="text-xs bg-slate-100 px-2 py-1 rounded font-mono text-slate-800 tracking-wider">
+                                    <?= substr(esc($user['api_key']), 0, 14) ?>...
+                                </code>
+                                <button type="button" onclick="copyToClipboard('<?= esc($user['api_key'], 'js') ?>')" class="text-slate-400 hover:text-indigo-600 text-xs p-1" title="Salin Kunci API Lengkap">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        <?php else: ?>
+                            <span class="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Belum ada</span>
+                        <?php endif; ?>
+                    </td>
                     <td class="py-4 px-6 text-xs text-brand-600 hover:underline">
                         <?php if (!empty($user['url_apk'])): ?>
-                            <a href="<?= esc($user['url_apk']) ?>" target="_blank"><?= esc($user['url_apk']) ?></a>
+                            <a href="<?= esc($user['url_apk']) ?>" target="_blank" class="truncate max-w-[150px] inline-block"><?= esc($user['url_apk']) ?></a>
                         <?php else: ?>
                             <span class="text-slate-400 italic">Tidak ada URL</span>
                         <?php endif; ?>
                     </td>
                     <td class="py-4 px-6 text-center">
-                        <div class="flex items-center justify-center space-x-3.5">
-                            <button onclick="openEditModal(<?= $user['pengguna_id'] ?>, '<?= esc($user['nip'], 'js') ?>', <?= $user['kategori_id'] ?>, '<?= esc($user['url_apk'], 'js') ?>')" class="text-slate-400 hover:text-brand-600 text-base" title="Edit"><i class="fas fa-edit"></i></button>
+                        <div class="flex items-center justify-center space-x-2.5">
+                            <button onclick="openEditModal(<?= $user['pengguna_id'] ?>, '<?= esc($user['nip'], 'js') ?>', <?= $user['kategori_id'] ?>, '<?= esc($user['url_apk'], 'js') ?>', '<?= esc($user['api_key'] ?? '', 'js') ?>')" class="text-slate-400 hover:text-brand-600 text-sm" title="Edit Data User"><i class="fas fa-edit"></i></button>
+                            
+                            <a href="<?= base_url('admin/user_opd/regenerate_api_key/' . $user['pengguna_id']) ?>" onclick="return confirm('Apakah Anda yakin ingin me-reset API Key ini? Aplikasi luar yang memakai key lama harus diubah.');" class="text-slate-400 hover:text-amber-600 text-sm" title="Generate Ulang API Key">
+                                <i class="fas fa-key"></i>
+                            </a>
+
                             <form action="<?= base_url('admin/user_opd/delete/' . $user['pengguna_id']) ?>" method="post" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun user ini?');">
-                                <button type="submit" class="text-slate-400 hover:text-red-600 text-base" title="Hapus"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="text-slate-400 hover:text-red-600 text-sm" title="Hapus"><i class="fas fa-trash"></i></button>
                             </form>
                         </div>
                     </td>
@@ -121,6 +149,10 @@
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">URL Website Resmi Aplikasi</label>
                 <input type="text" name="url_apk" placeholder="https://..." class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-semibold text-slate-900">
             </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">API Key (Opsional)</label>
+                <input type="text" name="api_key" placeholder="Kosongkan untuk generate otomatis..." class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-xs font-mono text-slate-700">
+            </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onclick="toggleModal('modalUser')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold">Batal</button>
                 <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold shadow-md">Simpan</button>
@@ -153,6 +185,10 @@
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">URL Website Resmi Aplikasi</label>
                 <input type="text" id="edit_url_apk" name="url_apk" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-semibold text-slate-900">
             </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kunci API (API Key)</label>
+                <input type="text" id="edit_api_key" name="api_key" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-xs font-mono text-slate-700">
+            </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onclick="toggleModal('modalEditUser')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold">Batal</button>
                 <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold shadow-md">Simpan</button>
@@ -161,11 +197,61 @@
     </div>
 </div>
 
+<!-- Modal Panduan Integrasi API -->
+<div id="modalApiGuide" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden transform scale-95 transition-all max-h-[90vh] flex flex-col">
+        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                    <i class="fas fa-plug text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Panduan Pengiriman Data API</h3>
+                    <p class="text-xs text-slate-400">Mekanisme kirim data FAQ langsung dari aplikasi eksternal OPD ke Dilan.</p>
+                </div>
+            </div>
+            <button onclick="toggleModal('modalApiGuide')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
+        </div>
+        <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-600 custom-scrollbar">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-1">1. Autentikasi Kunci API</span>
+                <p class="text-slate-500 mb-2">Setiap request pengiriman data wajib menyertakan HTTP Header:</p>
+                <code class="block bg-slate-900 text-emerald-400 p-2.5 rounded-lg font-mono text-[11px]">X-API-KEY: [Kunci_API_OPD_Anda]</code>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-1">2. Endpoint Pengiriman Data FAQ Tunggal</span>
+                <div class="flex items-center gap-2 mb-2 font-mono text-[11px]">
+                    <span class="px-2 py-0.5 rounded bg-emerald-600 text-white font-bold">POST</span>
+                    <span class="text-slate-800 font-semibold"><?= base_url('api/faqs') ?></span>
+                </div>
+                <p class="text-slate-500 mb-2">Payload JSON:</p>
+                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto">{
+  "judul": "Bagaimana cara melakukan pendaftaran online?",
+  "isi": "&lt;p&gt;Silakan klik menu pendaftaran pada website.&lt;/p&gt;",
+  "kata_kunci": "daftar, online, antrean"
+}</pre>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="font-bold text-slate-800 block mb-1">3. Contoh Kirim via cURL</span>
+                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto">curl -X POST "<?= base_url('api/faqs') ?>" \
+  -H "Content-Type: application/json" \
+  -H "X-API-KEY: your_api_key_here" \
+  -d '{"judul": "Tanya FAQ", "isi": "Jawaban FAQ"}'</pre>
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <button onclick="toggleModal('modalApiGuide')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <script>
     function toggleModal(id) {
         document.getElementById(id).classList.toggle('hidden');
     }
-    function openEditModal(id, nip, idKategori, urlApk) {
+    function openEditModal(id, nip, idKategori, urlApk, apiKey) {
         const modal = document.getElementById('modalEditUser');
         const form = document.getElementById('formEditUser');
         
@@ -173,8 +259,16 @@
         document.getElementById('edit_nip').value = nip;
         document.getElementById('edit_id_kategori').value = idKategori;
         document.getElementById('edit_url_apk').value = urlApk;
+        document.getElementById('edit_api_key').value = apiKey || '';
         
         modal.classList.remove('hidden');
+    }
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('Kunci API berhasil disalin ke clipboard!');
+        }, function(err) {
+            console.error('Gagal menyalin:', err);
+        });
     }
 </script>
 <?= $this->endSection() ?>

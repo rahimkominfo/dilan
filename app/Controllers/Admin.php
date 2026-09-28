@@ -261,15 +261,21 @@ class Admin extends BaseController
     public function user_opd_store()
     {
         $userModel = new \App\Models\UserModel();
+        $apiKey = $this->request->getPost('api_key');
+        if (empty($apiKey)) {
+            $apiKey = 'dilan_key_' . bin2hex(random_bytes(16));
+        }
+
         $data = [
             'nip'         => $this->request->getPost('nip'),
             'kategori_id' => $this->request->getPost('kategori_id'),
             'url_apk'     => $this->request->getPost('url_apk'),
-            'peran'        => 'user',
+            'api_key'     => trim($apiKey),
+            'peran'       => 'user',
             'password'    => ''
         ];
         $userModel->insert($data);
-        return redirect()->to(base_url('admin/user_opd'))->with('success', 'User OPD berhasil ditambahkan.');
+        return redirect()->to(base_url('admin/user_opd'))->with('success', 'User OPD berhasil ditambahkan dengan API Key.');
     }
 
     public function user_opd_update($id)
@@ -280,8 +286,19 @@ class Admin extends BaseController
             'kategori_id' => $this->request->getPost('kategori_id'),
             'url_apk'     => $this->request->getPost('url_apk')
         ];
+        $apiKey = $this->request->getPost('api_key');
+        if (!empty($apiKey)) {
+            $data['api_key'] = trim($apiKey);
+        }
         $userModel->update($id, $data);
         return redirect()->to(base_url('admin/user_opd'))->with('success', 'User OPD berhasil diperbarui.');
+    }
+
+    public function user_opd_regenerate_api_key($id)
+    {
+        $userModel = new \App\Models\UserModel();
+        $newKey = $userModel->generateApiKey((int)$id);
+        return redirect()->to(base_url('admin/user_opd'))->with('success', 'API Key baru berhasil dibuat: ' . $newKey);
     }
 
     public function user_opd_delete($id)
@@ -294,6 +311,7 @@ class Admin extends BaseController
     public function user_info()
     {
         $kategori_id = session()->get('kategori_id'); // From login session
+        $nip = session()->get('nip');
         $kategoriName = 'Semua Kategori';
         $keyword = trim($this->request->getVar('keyword') ?? '');
 
@@ -315,12 +333,30 @@ class Admin extends BaseController
                 ->groupEnd();
         }
 
+        // Ambil data pengguna login untuk mendapatkan API Key
+        $userModel = new \App\Models\UserModel();
+        $currentUser = null;
+        if ($nip && $kategori_id) {
+            $currentUser = $userModel->where('nip', $nip)->where('kategori_id', $kategori_id)->first();
+        } elseif ($nip) {
+            $currentUser = $userModel->where('nip', $nip)->first();
+        }
+
+        // Jika user belum punya API Key, buatkan otomatis
+        $apiKey = $currentUser['api_key'] ?? null;
+        if ($currentUser && empty($apiKey)) {
+            $apiKey = $userModel->generateApiKey((int)$currentUser['pengguna_id']);
+        }
+
         $data = [
             'title'         => 'Dashboard User OPD - Dilan',
             'informasi'     => $infoQuery->paginate(10, 'user_info'),
             'pager'         => $this->infoModel->pager,
             'keyword'       => $keyword,
-            'kategori_name' => $kategoriName
+            'kategori_name' => $kategoriName,
+            'kategori_id'   => $kategori_id,
+            'api_key'       => $apiKey,
+            'user_opd'      => $currentUser
         ];
         return view('admin/user_info', $data);
     }

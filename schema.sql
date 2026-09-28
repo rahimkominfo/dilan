@@ -61,7 +61,9 @@ CREATE TABLE `jenis` (
 CREATE TABLE `kategori` (
   `kategori_id` int NOT NULL AUTO_INCREMENT,
   `nama_kategori` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`kategori_id`)
+  `kode_kategori` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`kategori_id`),
+  UNIQUE KEY `idx_kode_kategori` (`kode_kategori`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -107,8 +109,10 @@ CREATE TABLE `pengguna` (
   `peran` enum('admin','user') DEFAULT 'user',
   `kategori_id` int NOT NULL,
   `url_apk` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `api_key` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`pengguna_id`),
   UNIQUE KEY `nip_kategori` (`nip`,`kategori_id`),
+  UNIQUE KEY `idx_api_key` (`api_key`),
   KEY `kategori_id` (`kategori_id`),
   CONSTRAINT `fk_pengguna_kategori` FOREIGN KEY (`kategori_id`) REFERENCES `kategori` (`kategori_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
